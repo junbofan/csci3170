@@ -51,16 +51,16 @@ public class SystemMenu {
 			case 0:
 				return;
 			case 1:
-				CSCI3170_Gp15.adminCreateTable();
+				CSCI3170_Gp15.createTables();
 				break;
 			case 2:
-				CSCI3170_Gp15.adminDeleteTable();
+				CSCI3170_Gp15.deleteTables();
 				break;
 			case 3:
-				CSCI3170_Gp15.adminLoadData();
+				SystemMenu.adminLoadData();
 				break;
 			case 4:
-				CSCI3170_Gp15.adminCountRecord();
+				CSCI3170_Gp15.countRecords();
 				break;
 			default:
 				System.out.println("[Error]: Invalid choice.");			
@@ -68,12 +68,21 @@ public class SystemMenu {
 		SystemMenu.adminMenu();
 	}
 	
+	public static void adminLoadData(){
+		String filePath = "invalidFilePath";
+		System.out.print("Type in the Source Data Path: ");
+		filePath = CSCI3170_Gp15.choice.nextLine();
+		CSCI3170_Gp15.loadDataFromFile(filePath);
+		System.out.println("Processing...Data are successfully loaded!");
+	}	
+	
+	//company menus
 	public static void companyMenu(){
 		int choiceNum = -1;
 		System.out.println("-----Operations for exploration companies (rental customers)-----");
 		System.out.println("What kinds of operation would you like to perform?");
-		System.out.println("1. Search for NEAs nased on some criteria");
-		System.out.println("2. Search for spacecrafts nased on some criteria");
+		System.out.println("1. Search for NEAs based on some criteria");
+		System.out.println("2. Search for spacecrafts based on some criteria");
 		System.out.println("3. A certain NEA exploration mission design");
 		System.out.println("4. The mose beneficial NEA exploration design");
 		System.out.println("0. Return to the main menu");
@@ -102,7 +111,7 @@ public class SystemMenu {
 		}
 		SystemMenu.companyMenu();
 	}
-	
+
 	public static void companySearchNEA(){
 		int choiceNum = -1;
 		String keyword = "invalidKeyword";
@@ -117,9 +126,9 @@ public class SystemMenu {
 		if(choiceNum>0 && choiceNum<4){
 			System.out.print("Type in the search keyword: ");
 			keyword = CSCI3170_Gp15.choice.nextLine();
-			String result = CSCI3170_Gp15.searchNEAFromDB(choiceNum, keyword);
+			String result = CSCI3170_Gp15.searchNEA(choiceNum, keyword);
 			String tableHeader = "|";
-			for(String attribute: CSCI3170_Gp15.scAttr)
+			for(String attribute: CSCI3170_Gp15.NEAAttr)
 				tableHeader += attribute+"|";
 			System.out.println(tableHeader);
 			System.out.println(result);
@@ -144,7 +153,7 @@ public class SystemMenu {
 		if(choiceNum>0 && choiceNum<5){
 			System.out.print("Type in the search keyword: ");
 			keyword = CSCI3170_Gp15.choice.nextLine();
-			String result = CSCI3170_Gp15.searchSCFromDB(choiceNum, keyword);
+			String result = CSCI3170_Gp15.searchSC(choiceNum, keyword);
 			String tableHeader = "|";
 			for(String attribute: CSCI3170_Gp15.scAttr)
 				tableHeader += attribute+"|";
@@ -156,14 +165,10 @@ public class SystemMenu {
 	}
 	
 	public static void companyCertainMissDesign(){
-		int choiceNum = -1;
 		String NEAID = "invalidNEAID";
 		System.out.print("Typing in the NEA ID: ");
 		NEAID = CSCI3170_Gp15.choice.nextLine();
 		System.out.println("All possible solutions:");
-		try{
-			choiceNum = Integer.parseInt(CSCI3170_Gp15.choice.nextLine());
-		} catch(Exception e){}
 		String result = CSCI3170_Gp15.certMissionDesign(NEAID);
 		String tableHeader = "|";
 		for(String attribute: CSCI3170_Gp15.certainMissDesignAttr)
@@ -183,6 +188,7 @@ public class SystemMenu {
 		if(budget>=0){
 			System.out.print("Typing in the resource type: ");
 			resourceType = CSCI3170_Gp15.choice.nextLine();
+			System.out.println("The most beneficial mission is:");
 			String result = CSCI3170_Gp15.mostBenMissionDesign(budget, resourceType);
 			String tableHeader = "|";
 			for(String attribute: CSCI3170_Gp15.mostBenMissDesignAttr)
@@ -194,7 +200,80 @@ public class SystemMenu {
 			System.out.println("[Error]: Invalid budget");	
 	}
 	
+	//staff menus
 	public static void staffMenu(){
-		System.out.println("staffMenu");
+		int choiceNum = -1;
+		System.out.println("-----Operations for spacecraft rental staff-----");
+		System.out.println("What kinds of operation would you like to perform?");
+		System.out.println("1. Rent a spacecraft");
+		System.out.println("2. Return a spacecraft");
+		System.out.println("3. List all spacecraft currently rented out (on a mission) for a certain period");
+		System.out.println("4. List the number of spacecrafts currently rented out by each Agency");
+		System.out.println("0. Return to the main menu");
+		System.out.print("Enter Your Choice: ");
+		
+		try{
+			choiceNum = Integer.parseInt(CSCI3170_Gp15.choice.nextLine());
+		} catch(Exception e){}
+		switch(choiceNum){
+			case 0:
+				return;
+			case 1:
+				SystemMenu.staffRentReturnSC(true);
+				break;
+			case 2:
+				SystemMenu.staffRentReturnSC(false);
+				break;
+			case 3:
+				SystemMenu.staffListRentedSC();
+				break;
+			case 4:
+				CSCI3170_Gp15.staffListAgencyRentNum();
+				break;
+			default:
+				System.out.println("[Error]: Invalid choice.");		
+		}
+		SystemMenu.staffMenu();
+	}
+	
+	public static void staffRentReturnSC(boolean isRent){
+		String agencyName = "invalidAgencyName";
+		String MID = "invalidMID";
+		int SNum = -1;
+		System.out.print("Enter the space agency name: ");
+		agencyName = CSCI3170_Gp15.choice.nextLine();
+		System.out.print("Enter the MID: ");
+		MID = CSCI3170_Gp15.choice.nextLine();
+		System.out.print("Enter the SNum: ");
+		try{
+			SNum = Integer.parseInt(CSCI3170_Gp15.choice.nextLine());
+		} catch(Exception e){}
+		if(SNum>=0){
+			if(isRent){
+				CSCI3170_Gp15.rentSC(agencyName, MID, SNum);
+				System.out.println("Spacecraft rented successfully!");
+			} else{
+				CSCI3170_Gp15.returnSC(agencyName, MID, SNum);
+				System.out.println("Spacecraft returned successfully!");
+			}
+		} else
+			System.out.println("[Error]: Invalid SNum.");
+	}
+	
+	public static void staffListRentedSC(){
+		String startDate = "invalidStartDate";
+		String endDate = "invalidEndDate";
+		System.out.print("Typing in the starting date [DD-MM-YYYY]: ");
+		startDate = CSCI3170_Gp15.choice.nextLine();
+		System.out.print("Typing in the ending date [DD-MM-YYYY]: ");
+		endDate = CSCI3170_Gp15.choice.nextLine();
+		System.out.println("List of the unreturned spacecraft");
+		String result = CSCI3170_Gp15.listRentedSC(startDate, endDate);
+		String tableHeader = "|";
+		for(String attribute: CSCI3170_Gp15.rentedSCAttr)
+			tableHeader += attribute+"|";
+		System.out.println(tableHeader);
+		System.out.println(result);
+		System.out.println("End of Query");
 	}
 }

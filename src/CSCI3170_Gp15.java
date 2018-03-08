@@ -12,6 +12,7 @@ public class CSCI3170_Gp15 {
 	public static String[] scAttr = {"Agency", "MID", "SNum", "Type", "Energy", "T", "Capacity", "Charge"};
 	public static String[] certainMissDesignAttr = {"Agency", "MID", "SNum", "Cost", "Benefit"};
 	public static String[] mostBenMissDesignAttr = {"NEA ID", "Family", "Agency", "MID", "SNum", "Duration", "Cost", "Benefit"};
+	public static String[] rentedSCAttr = {"Agency", "MID", "SNum", "Checkout Date"};
 	public static Connection conn;
 	public static Scanner choice;
 	public static void connectToDatabase(){
@@ -27,7 +28,7 @@ public class CSCI3170_Gp15 {
 		}
 	}
 	
-	public static void adminCreateTable(){
+	public static void createTables(){
 		try{
 			System.out.println("Processing...Done! Database is initialized!");
 		} catch(Exception e){
@@ -35,7 +36,7 @@ public class CSCI3170_Gp15 {
 		}
 	}
 	
-	public static void adminDeleteTable(){
+	public static void deleteTables(){
 		try{
 			System.out.println("Processing...Done! Database is removed!");
 		} catch(Exception e){
@@ -43,15 +44,17 @@ public class CSCI3170_Gp15 {
 		}
 	}
 	
-	public static void adminLoadData(){
+	public static void loadDataFromFile(String filePath){
+		System.out.println("loadDataFromFile");
 		try{
-			System.out.println("Processing...Data are successfully loaded!");
+			System.out.println("filePath: "+filePath);
+			
 		} catch(Exception e){
 			printException(e);
 		}
 	}
 	
-	public static void adminCountRecord(){
+	public static void countRecords(){
 		try{
 			System.out.println("Number of records in each table:");
 		} catch(Exception e){
@@ -59,7 +62,7 @@ public class CSCI3170_Gp15 {
 		}
 	}
 	
-	public static String searchNEAFromDB(int choiceNum, String keyword){
+	public static String searchNEA(int choiceNum, String keyword){
 		String result = "searchNEAFromDB:";
 		try{
 			result += "\nchoiceNum: "+choiceNum+"\nkeyword: "+keyword;
@@ -69,7 +72,7 @@ public class CSCI3170_Gp15 {
 		return result;
 	}
 	
-	public static String searchSCFromDB(int choiceNum, String keyword){
+	public static String searchSC(int choiceNum, String keyword){
 		String result = "searchSCFromDB:";
 		try{
 			result += "\nchoiceNum: "+choiceNum+"\nkeyword: "+keyword;
@@ -97,6 +100,43 @@ public class CSCI3170_Gp15 {
 			printException(e);
 		}
 		return result;
+	}
+	
+	public static void rentSC(String agency, String MID, int SNum){
+		System.out.println("rentSC");
+		try{
+			System.out.println("agency: "+agency+"\nMID: "+MID+"\nSNum: "+SNum);
+		} catch(Exception e){
+			printException(e);
+		}
+	}
+	
+	public static void returnSC(String agency, String MID, int SNum){
+		System.out.println("returnSC");
+		try{
+			System.out.println("agency: "+agency+"\nMID: "+MID+"\nSNum: "+SNum);
+		} catch(Exception e){
+			printException(e);
+		}
+	}
+	
+	public static String listRentedSC(String startDate, String endDate){
+		String result = "listRentedSC:";
+		try{
+			result += "\nstartDate: "+startDate+"\nendDate: "+endDate;
+		} catch(Exception e){
+			printException(e);
+		}
+		return result;
+	}
+	
+	public static void staffListAgencyRentNum(){
+		System.out.println("staffListAgencyRentNum");
+		try{
+			System.out.println("|Agency|Number|");
+		} catch(Exception e){
+			printException(e);
+		}
 	}
 	
 	public static void printException(Exception e){
