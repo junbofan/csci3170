@@ -8,7 +8,7 @@ public class CSCI3170_Gp15 {
 	//public static String dbAddress = "jdbc:mysql://localhost:3306?autoReconnect=true&useSSL=false";
 	//public static String dbUsername = "root";
 	//public static String dbPassword = "19951215";
-        
+
 	public static String dbAddress = "jdbc:mysql://localhost:3306/space";
 	public static String dbUsername = "root";
 	public static String dbPassword = "root";
@@ -19,6 +19,7 @@ public class CSCI3170_Gp15 {
 	public static String[] rentedSCAttr = {"Agency", "MID", "SNum", "Checkout Date"};
 	public static Connection conn;
 	public static Scanner choice;
+	public static String[] tableNamesAttr = {"NEA", "Contain", "Resource", "Spacecraft_Model", "A_Model", "Rental_Record"};
 
 	public static String dateFormatter(String date) {
 		if (date.equals("null")) {
@@ -199,8 +200,8 @@ public class CSCI3170_Gp15 {
 		        		insertSQL += ("\"" + splitDataArray[i] + "\",");
 		        	}
 					stmt.execute("INSERT INTO Spacecraft_Model (Agency, MID, Num, Type, Energy, Duration, Charge) VALUES " + insertSQL.substring(0, insertSQL.length() - 1) + ");");
-					if (splitDataArray[3] == "A") {
-						stmt.execute("INSERT INTO A_Model (Agency, MID, Num, Type, Energy, Duration, Charge) VALUES " + insertSQL + "\"" + splitDataArray[6] + "\");");
+					if (splitDataArray[3].equals("A")) {
+						stmt.execute("INSERT INTO A_Model (Agency, MID, Num, Type, Energy, Duration, Charge, Capacity) VALUES " + insertSQL + "\"" + splitDataArray[6] + "\");");
 					}  
 		        }
 		   	} catch (FileNotFoundException ex) {
@@ -247,6 +248,14 @@ public class CSCI3170_Gp15 {
 	public static void countRecords(){
 		try{
 			System.out.println("Number of records in each table:");
+			Statement stmt = conn.createStatement();
+			for (int i = 0; i != tableNamesAttr.length; ++i) {
+				ResultSet queryResult = stmt.executeQuery("SELECT COUNT(*) AS RowNum FROM " + tableNamesAttr[i]);
+				while(queryResult.next()) {
+					System.out.printf("Table %-16s: %-10s\n", tableNamesAttr[i], queryResult.getInt("RowNum"));
+				}
+			}
+			//System.out.printf("%-25s : %25s%n", "left justified", "right justified");
 		} catch(Exception e){
 			printException(e);
 		}
