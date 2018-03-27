@@ -44,6 +44,7 @@ public class CSCI3170_Gp15 {
 	
 	public static void createTables(){
 		try{
+			System.out.print("Processing...");
 			String NeaSQL = 
 						"CREATE TABLE IF NOT EXISTS NEA (" + 
 						"NID VARCHAR(25) NOT NULL," +
@@ -100,7 +101,7 @@ public class CSCI3170_Gp15 {
 			stmt.execute(spacecraftModelSQL);
 			stmt.execute(AModelSQL);
 			stmt.execute(RentalRecordSQL);
-			System.out.println("Processing...Done! Database is initialized!");
+			System.out.println("Done! Database is initialized!");
 		} catch(Exception e){
 			printException(e);
 		}
@@ -109,16 +110,13 @@ public class CSCI3170_Gp15 {
 	public static void deleteTables(){
 		try{
 			Statement stmt = conn.createStatement();
-			//System.out.print("Processing...");
+			System.out.print("Processing...");
 			stmt.execute("SET FOREIGN_KEY_CHECKS = 0;");
-			stmt.execute("DROP TABLE IF EXISTS NEA");
-			stmt.execute("DROP TABLE IF EXISTS Contain");
-			stmt.execute("DROP TABLE IF EXISTS Resource");
-			stmt.execute("DROP TABLE IF EXISTS Spacecraft_Model");
-			stmt.execute("DROP TABLE IF EXISTS A_Model");
-			stmt.execute("DROP TABLE IF EXISTS Rental_Record");
-			//stmt.execute("SET FOREIGN_KEY_CHECKS = 1;");
-			System.out.println("Processing...Done! Database is removed!");
+			for (int i = 0; i != tableNamesAttr.length; ++i) {
+				stmt.execute("DROP TABLE IF EXISTS " + tableNamesAttr[i]);
+			}
+			stmt.execute("SET FOREIGN_KEY_CHECKS = 1;");
+			System.out.println("Done! Database is removed!");
 		} catch(Exception e){
 			printException(e);
 		}
@@ -126,6 +124,7 @@ public class CSCI3170_Gp15 {
 	
 	public static void loadDataFromFile(String filePath){
 		try{
+			System.out.print("Processing...");
 			String line;
 			String insertSQL;
 			String [] splitDataArray = null;
@@ -240,6 +239,7 @@ public class CSCI3170_Gp15 {
 		    } catch (IOException ex) {
 		        ex.printStackTrace();
 		    }
+			System.out.println("Data are successfully loaded!");
 		} catch(Exception e){
 			printException(e);
 		}
