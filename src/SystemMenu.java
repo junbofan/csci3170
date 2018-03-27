@@ -73,7 +73,6 @@ public class SystemMenu {
 		System.out.print("Type in the Source Data Path: ");
 		filePath = CSCI3170_Gp15.choice.nextLine();
 		CSCI3170_Gp15.loadDataFromFile(filePath);
-		System.out.println("Processing...Data are successfully loaded!");
 	}	
 	
 	//company menus
