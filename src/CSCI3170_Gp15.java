@@ -320,9 +320,13 @@ public class CSCI3170_Gp15 {
 	}
 	
 	public static String listRentedSC(String startDate, String endDate){
-		String result = "listRentedSC:";
+		String result = "";
 		try{
-			result += "\nstartDate: "+startDate+"\nendDate: "+endDate;
+			Statement stmt = conn.createStatement();
+			ResultSet rentNum = stmt.executeQuery("SELECT Agency, MID, SNum, CheckoutDate FROM Rental_Record where ReturnDate IS NULL AND CheckoutDate >= \"" + dateFormatter(startDate) + "\" AND CheckoutDate <= \"" + dateFormatter(endDate) + "\"");
+			while (rentNum.next()) {
+				result += ("|" + rentNum.getString("Agency") + "|" + rentNum.getString("MID") + "|" + rentNum.getString("SNum") + "|" + rentNum.getString("CheckoutDate") + "|\n");
+			}
 		} catch(Exception e){
 			printException(e);
 		}
@@ -330,9 +334,14 @@ public class CSCI3170_Gp15 {
 	}
 	
 	public static void staffListAgencyRentNum(){
-		System.out.println("staffListAgencyRentNum");
+		//System.out.println("staffListAgencyRentNum");
 		try{
 			System.out.println("|Agency|Number|");
+			Statement stmt = conn.createStatement();
+			ResultSet rentNum = stmt.executeQuery("SELECT Agency, COUNT(*) AS Num FROM Rental_Record where ReturnDate IS NULL GROUP BY Agency");
+			while (rentNum.next()) {
+				System.out.println("|" + rentNum.getString("Agency") + "|" + rentNum.getString("Num") + "|");
+			}
 		} catch(Exception e){
 			printException(e);
 		}
