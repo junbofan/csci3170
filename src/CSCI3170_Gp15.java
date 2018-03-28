@@ -1,6 +1,9 @@
 import java.util.Scanner;
 import java.sql.*;
 import java.io.*;
+import java.util.*;
+import java.text.*;
+
 public class CSCI3170_Gp15 {
 	//public static String dbAddress = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2312/db00";
 	//public static String dbUsername = "Group00";
@@ -27,6 +30,10 @@ public class CSCI3170_Gp15 {
 		}
 		String [] dateArray = date.split("-");
 		return (dateArray[2] + "-" + dateArray[1] + "-" + dateArray[0]);
+	}
+
+	public static void errorMsgPrinter(String msg) {
+		System.out.println("[Error]: " + msg);
 	}
 
 	public static void connectToDatabase(){
@@ -302,18 +309,54 @@ public class CSCI3170_Gp15 {
 	}
 	
 	public static void rentSC(String agency, String MID, int SNum){
-		System.out.println("rentSC");
 		try{
-			System.out.println("agency: "+agency+"\nMID: "+MID+"\nSNum: "+SNum);
+			Statement stmt = conn.createStatement();
+			// check whether the spacecraft exists
+			ResultSet existSC = stmt.executeQuery("SELECT EXISTS(SELECT * FROM Spacecraft_Model WHERE Agency=\"" + agency + "\" AND MID=\"" + MID + "\" AND Num>=\"" + String.valueOf(SNum) + "\")");
+			existSC.next();
+			if (existSC.getInt(1) == 1) {
+				// check whether the spacecraft has been rent out
+				existSC = stmt.executeQuery("SELECT EXISTS(SELECT * FROM Rental_Record WHERE ReturnDate IS NULL AND Agency=\"" + agency + "\" AND MID=\"" + MID + "\" AND SNum=\"" + String.valueOf(SNum) + "\")");
+				existSC.next();
+				if (existSC.getInt(1) == 1) {
+					errorMsgPrinter("Rental not possible because the spacecraft has not yet been returned.");
+				} else {
+					java.util.Date date = new java.util.Date();
+					String modifiedDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
+					stmt.execute("INSERT INTO Rental_Record (Agency, MID, SNum, CheckoutDate, ReturnDate)" +
+									"VALUES (\"" + agency + "\", \"" + MID + "\", \"" + String.valueOf(SNum) + "\", \"" + modifiedDate + "\", NULL)" +
+									"ON DUPLICATE KEY UPDATE CheckoutDate=\"" + modifiedDate + "\", ReturnDate=NULL");
+				}
+			} else {
+				errorMsgPrinter("The spacecraft does not exist.");
+			}
+			
 		} catch(Exception e){
 			printException(e);
 		}
 	}
 	
 	public static void returnSC(String agency, String MID, int SNum){
-		System.out.println("returnSC");
 		try{
-			System.out.println("agency: "+agency+"\nMID: "+MID+"\nSNum: "+SNum);
+			Statement stmt = conn.createStatement();
+			// check whether the spacecraft exists
+			ResultSet existSC = stmt.executeQuery("SELECT EXISTS(SELECT * FROM Spacecraft_Model WHERE Agency=\"" + agency + "\" AND MID=\"" + MID + "\" AND Num>=\"" + String.valueOf(SNum) + "\")");
+			existSC.next();
+			if (existSC.getInt(1) == 1) {
+				// check whether the spacecraft has been rent out
+				existSC = stmt.executeQuery("SELECT EXISTS(SELECT * FROM Rental_Record WHERE ReturnDate IS NULL AND Agency=\"" + agency + "\" AND MID=\"" + MID + "\" AND SNum=\"" + String.valueOf(SNum) + "\")");
+				existSC.next();
+				if (existSC.getInt(1) == 1) {
+					java.util.Date date = new java.util.Date();
+					String modifiedDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
+					stmt.execute("UPDATE Rental_Record SET ReturnDate=\"" + modifiedDate + "\" WHERE Agency=\"" + agency + "\" AND MID=\"" + MID + "\" AND SNum=\"" + String.valueOf(SNum) + "\"");
+				} else {
+					errorMsgPrinter("Return is not possible because the spacecraft has yet been returned.");
+				}
+			} else {
+				errorMsgPrinter("The spacecraft does not exist.");
+			}
+			
 		} catch(Exception e){
 			printException(e);
 		}
@@ -323,9 +366,9 @@ public class CSCI3170_Gp15 {
 		String result = "";
 		try{
 			Statement stmt = conn.createStatement();
-			ResultSet rentNum = stmt.executeQuery("SELECT Agency, MID, SNum, CheckoutDate FROM Rental_Record where ReturnDate IS NULL AND CheckoutDate >= \"" + dateFormatter(startDate) + "\" AND CheckoutDate <= \"" + dateFormatter(endDate) + "\"");
-			while (rentNum.next()) {
-				result += ("|" + rentNum.getString("Agency") + "|" + rentNum.getString("MID") + "|" + rentNum.getString("SNum") + "|" + rentNum.getString("CheckoutDate") + "|\n");
+			ResultSet rentCraft = stmt.executeQuery("SELECT Agency, MID, SNum, CheckoutDate FROM Rental_Record where ReturnDate IS NULL AND CheckoutDate >= \"" + dateFormatter(startDate) + "\" AND CheckoutDate <= \"" + dateFormatter(endDate) + "\"");
+			while (rentCraft.next()) {
+				result += ("|" + rentCraft.getString("Agency") + "|" + rentCraft.getString("MID") + "|" + rentCraft.getString("SNum") + "|" + rentCraft.getString("CheckoutDate") + "|\n");
 			}
 		} catch(Exception e){
 			printException(e);
@@ -351,7 +394,7 @@ public class CSCI3170_Gp15 {
 		StringWriter sw = new StringWriter();
 		e.printStackTrace(new PrintWriter(sw));
 		String stackTrace = sw.toString(); 
-		System.out.println("[Error]: "+stackTrace);
+		System.out.println("[Error]: " + stackTrace);
 	}
 
 	public static void main(String[] args) {
