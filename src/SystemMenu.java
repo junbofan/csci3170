@@ -125,13 +125,7 @@ public class SystemMenu {
 		if(choiceNum>0 && choiceNum<4){
 			System.out.print("Type in the search keyword: ");
 			keyword = CSCI3170_Gp15.choice.nextLine();
-			String result = CSCI3170_Gp15.searchNEA(choiceNum, keyword);
-			String tableHeader = "|";
-			for(String attribute: CSCI3170_Gp15.NEAAttr)
-				tableHeader += attribute+"|";
-			System.out.println(tableHeader);
-			System.out.println(result);
-			System.out.println("End of Query");
+			CSCI3170_Gp15.searchNEA(choiceNum, keyword);
 		} else
 			System.out.println("[Error]: Invalid choice.");	
 	}
@@ -152,13 +146,7 @@ public class SystemMenu {
 		if(choiceNum>0 && choiceNum<5){
 			System.out.print("Type in the search keyword: ");
 			keyword = CSCI3170_Gp15.choice.nextLine();
-			String result = CSCI3170_Gp15.searchSC(choiceNum, keyword);
-			String tableHeader = "|";
-			for(String attribute: CSCI3170_Gp15.scAttr)
-				tableHeader += attribute+"|";
-			System.out.println(tableHeader);
-			System.out.println(result);
-			System.out.println("End of Query");
+			CSCI3170_Gp15.searchSC(choiceNum, keyword);
 		} else
 			System.out.println("[Error]: Invalid choice.");	
 	}
@@ -168,13 +156,7 @@ public class SystemMenu {
 		System.out.print("Typing in the NEA ID: ");
 		NEAID = CSCI3170_Gp15.choice.nextLine();
 		System.out.println("All possible solutions:");
-		String result = CSCI3170_Gp15.certMissionDesign(NEAID);
-		String tableHeader = "|";
-		for(String attribute: CSCI3170_Gp15.certainMissDesignAttr)
-			tableHeader += attribute+"|";
-		System.out.println(tableHeader);
-		System.out.println(result);
-		System.out.println("End of Query");
+		CSCI3170_Gp15.certMissionDesign(NEAID);
 	}
 	
 	public static void companyMostBenMissDeisgn(){
@@ -188,13 +170,8 @@ public class SystemMenu {
 			System.out.print("Typing in the resource type: ");
 			resourceType = CSCI3170_Gp15.choice.nextLine();
 			System.out.println("The most beneficial mission is:");
-			String result = CSCI3170_Gp15.mostBenMissionDesign(budget, resourceType);
-			String tableHeader = "|";
-			for(String attribute: CSCI3170_Gp15.mostBenMissDesignAttr)
-				tableHeader += attribute+"|";
-			System.out.println(tableHeader);
-			System.out.println(result);
-			System.out.println("End of Query");
+			CSCI3170_Gp15.mostBenMissionDesign(budget, resourceType);
+			
 		} else
 			System.out.println("[Error]: Invalid budget");	
 	}
@@ -250,10 +227,8 @@ public class SystemMenu {
 		if(SNum>=0){
 			if(isRent){
 				CSCI3170_Gp15.rentSC(agencyName, MID, SNum);
-				System.out.println("Spacecraft rented successfully!");
 			} else{
 				CSCI3170_Gp15.returnSC(agencyName, MID, SNum);
-				System.out.println("Spacecraft returned successfully!");
 			}
 		} else
 			System.out.println("[Error]: Invalid SNum.");

@@ -4,25 +4,29 @@ import java.io.*;
 import java.util.*;
 import java.text.*;
 
+//Finished: 1, 2, 3, 4, 5, 6, 9, 10, 11, 12
+//Unfinished: 7, 8
 public class CSCI3170_Gp15 {
-	//public static String dbAddress = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2312/db00";
-	//public static String dbUsername = "Group00";
-	//public static String dbPassword = "CSCI3170";
-	//public static String dbAddress = "jdbc:mysql://localhost:3306?autoReconnect=true&useSSL=false";
-	//public static String dbUsername = "root";
-	//public static String dbPassword = "19951215";
-
-	public static String dbAddress = "jdbc:mysql://localhost:3306/space";
+	/*public static String dbAddress = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2312/db00";
+	public static String dbUsername = "Group00";
+	public static String dbPassword = "CSCI3170";*/
+	public static String dbAddress = "jdbc:mysql://localhost:3306/space?autoReconnect=true&useSSL=false";
 	public static String dbUsername = "root";
-	public static String dbPassword = "root";
+	public static String dbPassword = "19951215";
+	/*public static String dbAddress = "jdbc:mysql://localhost:3306/space";
+	public static String dbUsername = "root";
+	public static String dbPassword = "root";*/
 	public static String[] NEAAttr = {"ID", "Distance", "Family", "Duration", "Energy", "Resources"};
-	public static String[] scAttr = {"Agency", "MID", "SNum", "Type", "Energy", "T", "Capacity", "Charge"};
+	public static String[] scAttr = {"Agency", "MID", "Num", "Type", "Energy", "T", "Capacity", "Charge"};
 	public static String[] certainMissDesignAttr = {"Agency", "MID", "SNum", "Cost", "Benefit"};
 	public static String[] mostBenMissDesignAttr = {"NEA ID", "Family", "Agency", "MID", "SNum", "Duration", "Cost", "Benefit"};
 	public static String[] rentedSCAttr = {"Agency", "MID", "SNum", "Checkout Date"};
+	public static String[] tableNamesAttr = {"NEA", "Contain", "Resource", "Spacecraft_Model", "A_Model", "Rental_Record"};
+	public static String[] NEASearchCriteria = {"PlaceHolder", "NID", "Family", "RType"};
+	public static String[] scSearchCriteria = {"PlaceHolder", "Agency", "Type", "Energy", "Duration", "Capacity"};
 	public static Connection conn;
 	public static Scanner choice;
-	public static String[] tableNamesAttr = {"NEA", "Contain", "Resource", "Spacecraft_Model", "A_Model", "Rental_Record"};
+	
 
 	public static String dateFormatter(String date) {
 		if (date.equals("null")) {
@@ -268,44 +272,203 @@ public class CSCI3170_Gp15 {
 		}
 	}
 	
-	public static String searchNEA(int choiceNum, String keyword){
-		String result = "searchNEAFromDB:";
+	public static void searchNEA(int choiceNum, String keyword){
+		String result = "|";
+		for(String attr: NEAAttr)
+			result += attr+"|";
+		String query = "SELECT * FROM nea NATURAL JOIN contain";
+		/*if(keyword.length()>0){*/
+			query += " WHERE "+NEASearchCriteria[choiceNum]+(choiceNum==1? "='"+keyword+"'": " LIKE '%"+keyword+"%'");
+			if(choiceNum==3)
+				query += " AND NOT "+NEASearchCriteria[choiceNum]+"='null'";
+		/*}*/
+		query += ";";
 		try{
-			result += "\nchoiceNum: "+choiceNum+"\nkeyword: "+keyword;
+			Statement stmt = conn.createStatement();
+			// check whether the spacecraft exists
+			ResultSet rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				result += "\n|"+rs.getString("NID")+"|"+rs.getDouble("Distance")+"|"+rs.getString("Family")+"|"+rs.getInt("Duration")+"|"+rs.getDouble("Energy")+"|"+rs.getString("Rtype")+"|";
+			}
+			System.out.println(result);
+			System.out.println("End of Query");
 		} catch(Exception e){
 			printException(e);
 		}
-		return result;
 	}
 	
-	public static String searchSC(int choiceNum, String keyword){
-		String result = "searchSCFromDB:";
+	public static void searchSC(int choiceNum, String keyword){
+		String result = "|";
+		for(String attr: scAttr)
+			result += attr+"|";
+		//JOIN a_model and spacecraft_model
+		String query = "CREATE OR REPLACE VIEW temp AS (SELECT COALESCE(a_model.Agency, spacecraft_model.Agency) AS Agency, COALESCE(a_model.MID, spacecraft_model.MID) AS MID, COALESCE(a_model.NUM, spacecraft_model.NUM) AS NUM, COALESCE(a_model.Type, spacecraft_model.Type) AS Type, COALESCE(a_model.Energy, spacecraft_model.Energy) AS Energy, COALESCE(a_model.Duration, spacecraft_model.Duration) AS Duration, COALESCE(a_model.Charge, spacecraft_model.Charge) AS Charge, COALESCE(a_model.Capacity, -1) AS Capacity FROM a_model RIGHT JOIN spacecraft_model ON a_model.MID=spacecraft_model.MID AND a_model.Agency=spacecraft_model.Agency);";
 		try{
-			result += "\nchoiceNum: "+choiceNum+"\nkeyword: "+keyword;
+			Statement stmt = conn.createStatement();
+			stmt.executeUpdate(query);
+			query = "SELECT * FROM temp";
+			//if(keyword.length()>0)
+				query += " WHERE "+scSearchCriteria[choiceNum]+(choiceNum<=2? "='"+keyword+"'": ">="+keyword);
+			query += ";";
+			ResultSet rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				result += "\n|"+rs.getString("Agency")+"|"+rs.getString("MID")+"|"+rs.getInt("Num")+"|"+rs.getString("Type")+"|"+rs.getDouble("Energy")+"|"+rs.getInt("Duration")+"|"+(rs.getInt("Capacity")<0?"null": rs.getInt("Capacity"))+"|"+rs.getInt("Charge");
+			}
+			System.out.println(result);
+			System.out.println("End of Query");
+			stmt.executeUpdate("DROP VIEW temp;");
 		} catch(Exception e){
 			printException(e);
 		}
-		return result;
 	}
 	
-	public static String certMissionDesign(String NEAID){
-		String result = "certMissionDesign";
+	public static void certMissionDesign(String NEAID){
+		String result = "|";
+		for(String attr: certainMissDesignAttr)
+			result += attr+"|";
 		try{
-			result += "\nNEAID: "+NEAID;
+			Statement stmt = conn.createStatement();
+			String resultString = "";
+			// check whether NEA exists
+			ResultSet existNEA = stmt.executeQuery("SELECT EXISTS(SELECT * FROM nea WHERE NID='"+NEAID+"');");
+			existNEA.next();
+			if (existNEA.getInt(1) == 1) {
+				double NEAEnergy = 0;
+				int NEADuration = 0;
+				int maxSCNum = 0;
+				double resourceValue = 0;
+				boolean haveResource = true;
+				stmt.executeUpdate("CREATE OR REPLACE VIEW NeaCon AS SELECT * FROM nea NATURAL JOIN contain;");
+				ResultSet queryResult = stmt.executeQuery("SELECT * FROM NeaCon WHERE NID='"+NEAID+"';");
+				while(queryResult.next()){
+					NEAEnergy = queryResult.getDouble("Energy");
+					NEADuration = queryResult.getInt("Duration");
+					if(queryResult.getString("Rtype").equals("null"))
+						haveResource = false;
+				}
+				if(haveResource){
+					stmt.executeUpdate("CREATE OR REPLACE VIEW NeaConRes As SELECT * FROM NeaCon NATURAL JOIN resource;");
+					queryResult = stmt.executeQuery("SELECT * FROM NeaConRes WHERE NID='"+NEAID+"';");
+					while(queryResult.next()){
+						resourceValue = queryResult.getDouble("Value")*queryResult.getDouble("Density");
+					}
+				}
+				stmt.executeUpdate("CREATE OR REPLACE VIEW qualified_SC AS SELECT Agency, MID, Num, Energy, Duration, Charge, Capacity FROM a_model WHERE Energy>="+NEAEnergy+" AND Duration>="+NEADuration+";");
+				queryResult = stmt.executeQuery("SELECT MAX(Num) AS maxSCNum FROM qualified_SC;");
+				while(queryResult.next())
+					maxSCNum = queryResult.getInt("maxSCNum");
+				stmt.executeUpdate("DROP TABLE IF EXISTS temp1;");
+				stmt.executeUpdate("CREATE TABLE temp1(SNum INT);");
+				for(int i=1; i<=maxSCNum; i++)
+					stmt.executeUpdate("INSERT INTO temp1 VALUES ("+i+");");
+				stmt.executeUpdate("CREATE OR REPLACE VIEW temp2 AS SELECT * FROM qualified_SC INNER JOIN temp1;");
+				stmt.executeUpdate("CREATE OR REPLACE VIEW expanded_qualified_SC AS SELECT * FROM temp2 WHERE SNum<=Num;");
+				stmt.executeUpdate("CREATE OR REPLACE VIEW rented_SC AS SELECT Agency, MID, SNum, Charge FROM rental_record NATURAL JOIN spacecraft_model WHERE ReturnDate IS NULL AND Type='A';");
+				stmt.executeUpdate("CREATE OR REPLACE VIEW expanded_rented_SC AS SELECT * FROM expanded_qualified_SC NATURAL JOIN rented_SC;");
+				queryResult = stmt.executeQuery("SELECT Agency, MID, Num, Energy, Duration, SNum, Charge*"+NEADuration+" AS Cost, Capacity FROM expanded_qualified_SC WHERE NOT EXISTS (SELECT Agency, MID, SNum FROM expanded_rented_SC WHERE Agency=expanded_qualified_SC.Agency AND MID=expanded_qualified_SC.MID AND  SNum=expanded_qualified_SC.SNum) ORDER BY Agency, MID, SNum;");
+				while(queryResult.next()){
+					int capacity = queryResult.getInt("Capacity");
+					double totalValue = resourceValue*100*100*100*capacity;
+					long cost = queryResult.getLong("Cost");
+					result += "\n|"+queryResult.getString("Agency")+"|"+queryResult.getString("MID")+"|"+queryResult.getInt("SNum")+"|"+cost+"|"+((long)(totalValue-cost));
+				}
+				stmt.executeUpdate("DROP TABLE IF EXISTS temp1;");
+				stmt.executeUpdate("DROP VIEW expanded_rented_SC;");
+				stmt.executeUpdate("DROP VIEW rented_SC;");
+				stmt.executeUpdate("DROP VIEW expanded_qualified_SC;");
+				stmt.executeUpdate("DROP VIEW temp2;");
+				stmt.executeUpdate("DROP VIEW qualified_SC;");
+				if(haveResource)
+					stmt.executeUpdate("DROP VIEW NeaConRes;");
+				stmt.executeUpdate("DROP VIEW NeaCon;");
+				System.out.println(result);
+				System.out.println("End of Query");
+			} else {
+				errorMsgPrinter("The NEA does not exist.");
+			}		
 		} catch(Exception e){
 			printException(e);
 		}
-		return result;
 	}
 	
-	public static String mostBenMissionDesign(int budget, String resourceType){
-		String result = "mostBenMissionDesign";
+	public static void mostBenMissionDesign(int budget, String resourceType){
+		String result = "|";
+		String planResult = "";
+		for(String attr: mostBenMissDesignAttr)
+			result += attr+"|";
 		try{
-			result += "\nbudget: "+budget+"\nresourceType: "+resourceType;
+			long benefit = 0;
+			long cost = 0;
+			int NEACounter = 0;
+			ArrayList<String> NIDList = new ArrayList<String>();
+			ArrayList<String> famList = new ArrayList<String>();
+			ArrayList<Integer> durationList = new ArrayList<Integer>();
+			ArrayList<Double> energyList = new ArrayList<Double>();
+			Statement stmt = conn.createStatement();
+			String resultString = "";
+			stmt.executeUpdate("CREATE OR REPLACE VIEW NeaConRes As SELECT * FROM nea NATURAL JOIN contain NATURAL JOIN resource;");
+			ResultSet queryResult = stmt.executeQuery("SELECT * FROM NeaConRes WHERE Rtype='"+resourceType+"';");
+			while(queryResult.next()){
+				NIDList.add(queryResult.getString("NID"));
+				famList.add(queryResult.getString("Family"));
+				durationList.add(queryResult.getInt("Duration"));
+				energyList.add(queryResult.getDouble("Energy"));
+				NEACounter++;
+			}
+			if(NEACounter>0) {
+				for(int i=0; i<NEACounter; i++){
+					String NEAID = NIDList.get(i);
+					String family = famList.get(i);
+					double NEAEnergy = energyList.get(i);
+					int NEADuration = durationList.get(i);
+					int maxSCNum = 0;
+					double resourceValue = 0;
+					queryResult = stmt.executeQuery("SELECT * FROM NeaConRes WHERE NID='"+NEAID+"';");
+					while(queryResult.next()){
+						resourceValue = queryResult.getDouble("Value")*queryResult.getDouble("Density");
+					}
+					stmt.executeUpdate("CREATE OR REPLACE VIEW qualified_SC AS SELECT Agency, MID, Num, Energy, Duration, Charge, Capacity FROM a_model WHERE Energy>="+NEAEnergy+" AND Duration>="+NEADuration+";");
+					queryResult = stmt.executeQuery("SELECT MAX(Num) AS maxSCNum FROM qualified_SC;");
+					while(queryResult.next())
+						maxSCNum = queryResult.getInt("maxSCNum");
+					stmt.executeUpdate("DROP TABLE IF EXISTS temp1;");
+					stmt.executeUpdate("CREATE TABLE temp1(SNum INT);");
+					for(int j=1; j<=maxSCNum; j++)
+						stmt.executeUpdate("INSERT INTO temp1 VALUES ("+j+");");
+					stmt.executeUpdate("CREATE OR REPLACE VIEW temp2 AS SELECT * FROM qualified_SC INNER JOIN temp1;");
+					stmt.executeUpdate("CREATE OR REPLACE VIEW expanded_qualified_SC AS SELECT * FROM temp2 WHERE SNum<=Num;");
+					stmt.executeUpdate("CREATE OR REPLACE VIEW rented_SC AS SELECT Agency, MID, SNum, Charge FROM rental_record NATURAL JOIN spacecraft_model WHERE ReturnDate IS NULL AND Type='A';");
+					stmt.executeUpdate("CREATE OR REPLACE VIEW expanded_rented_SC AS SELECT * FROM expanded_qualified_SC NATURAL JOIN rented_SC;");
+					queryResult = stmt.executeQuery("SELECT Agency, MID, Num, Energy, Duration, SNum, Charge*"+NEADuration+" AS Cost, Capacity FROM expanded_qualified_SC WHERE NOT EXISTS (SELECT Agency, MID, SNum FROM expanded_rented_SC WHERE Agency=expanded_qualified_SC.Agency AND MID=expanded_qualified_SC.MID AND  SNum=expanded_qualified_SC.SNum) ORDER BY Cost ASC;");
+					while(queryResult.next()){
+						int capacity = queryResult.getInt("Capacity");
+						cost = queryResult.getInt("Cost");
+						long tempBenefit = (long)(resourceValue*100*100*100*capacity)-cost;
+						if(cost>budget)
+							break;
+						if(tempBenefit>benefit){
+							benefit = tempBenefit;
+							planResult = "|"+NEAID+"|"+family+"|"+queryResult.getString("Agency")+"|"+queryResult.getString("MID")+"|"+queryResult.getInt("SNum")+"|"+NEADuration+"|"+cost+"|"+tempBenefit+"|";
+						}
+						break;
+					}
+				}
+				stmt.executeUpdate("DROP TABLE IF EXISTS temp1;");
+				stmt.executeUpdate("DROP VIEW expanded_rented_SC;");
+				stmt.executeUpdate("DROP VIEW rented_SC;");
+				stmt.executeUpdate("DROP VIEW expanded_qualified_SC;");
+				stmt.executeUpdate("DROP VIEW temp2;");
+				stmt.executeUpdate("DROP VIEW qualified_SC;");
+				stmt.executeUpdate("DROP VIEW NeaConRes;");
+				System.out.println(result);
+				System.out.println(planResult);
+				System.out.println("End of Query");
+			} else {
+				errorMsgPrinter("No nea contains this resource.");
+			}		
 		} catch(Exception e){
 			printException(e);
 		}
-		return result;
 	}
 	
 	public static void rentSC(String agency, String MID, int SNum){
@@ -326,11 +489,11 @@ public class CSCI3170_Gp15 {
 					stmt.execute("INSERT INTO Rental_Record (Agency, MID, SNum, CheckoutDate, ReturnDate)" +
 									"VALUES (\"" + agency + "\", \"" + MID + "\", \"" + String.valueOf(SNum) + "\", \"" + modifiedDate + "\", NULL)" +
 									"ON DUPLICATE KEY UPDATE CheckoutDate=\"" + modifiedDate + "\", ReturnDate=NULL");
+					System.out.println("Spacecraft rented successfully!");
 				}
 			} else {
 				errorMsgPrinter("The spacecraft does not exist.");
-			}
-			
+			}		
 		} catch(Exception e){
 			printException(e);
 		}
@@ -350,8 +513,9 @@ public class CSCI3170_Gp15 {
 					java.util.Date date = new java.util.Date();
 					String modifiedDate = new SimpleDateFormat("yyyy-MM-dd").format(date);
 					stmt.execute("UPDATE Rental_Record SET ReturnDate=\"" + modifiedDate + "\" WHERE Agency=\"" + agency + "\" AND MID=\"" + MID + "\" AND SNum=\"" + String.valueOf(SNum) + "\"");
+					System.out.println("Spacecraft returned successfully!");
 				} else {
-					errorMsgPrinter("Return is not possible because the spacecraft has yet been returned.");
+					errorMsgPrinter("Return is not possible because the spacecraft has not yet been rented.");
 				}
 			} else {
 				errorMsgPrinter("The spacecraft does not exist.");
@@ -391,10 +555,7 @@ public class CSCI3170_Gp15 {
 	}
 	
 	public static void printException(Exception e){
-		StringWriter sw = new StringWriter();
-		e.printStackTrace(new PrintWriter(sw));
-		String stackTrace = sw.toString(); 
-		System.out.println("[Error]: " + stackTrace);
+		System.out.println("[Error]: " + e.getMessage());
 	}
 
 	public static void main(String[] args) {
