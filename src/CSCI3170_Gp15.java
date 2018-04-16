@@ -302,7 +302,16 @@ public class CSCI3170_Gp15 {
 		for(String attr: scAttr)
 			result += attr+"|";
 		//JOIN a_model and spacecraft_model
-		String query = "CREATE OR REPLACE VIEW temp AS (SELECT COALESCE(a_model.Agency, spacecraft_model.Agency) AS Agency, COALESCE(a_model.MID, spacecraft_model.MID) AS MID, COALESCE(a_model.NUM, spacecraft_model.NUM) AS NUM, COALESCE(a_model.Type, spacecraft_model.Type) AS Type, COALESCE(a_model.Energy, spacecraft_model.Energy) AS Energy, COALESCE(a_model.Duration, spacecraft_model.Duration) AS Duration, COALESCE(a_model.Charge, spacecraft_model.Charge) AS Charge, COALESCE(a_model.Capacity, -1) AS Capacity FROM a_model RIGHT JOIN spacecraft_model ON a_model.MID=spacecraft_model.MID AND a_model.Agency=spacecraft_model.Agency);";
+		String query = "CREATE OR REPLACE VIEW temp AS " + 
+				"(SELECT COALESCE(a_model.Agency, spacecraft_model.Agency) AS Agency," + 
+				"COALESCE(a_model.MID, spacecraft_model.MID) AS MID," + 
+				"COALESCE(a_model.NUM, spacecraft_model.NUM) AS NUM," + 
+				"COALESCE(a_model.Type, spacecraft_model.Type) AS Type," + 
+				"COALESCE(a_model.Energy, spacecraft_model.Energy) AS Energy," + 
+				"COALESCE(a_model.Duration, spacecraft_model.Duration) AS Duration," + 
+				"COALESCE(a_model.Charge, spacecraft_model.Charge) AS Charge," +
+				"COALESCE(a_model.Capacity, -1) AS Capacity " + 
+				"FROM a_model RIGHT JOIN spacecraft_model ON a_model.MID=spacecraft_model.MID AND a_model.Agency=spacecraft_model.Agency);";
 		try{
 			Statement stmt = conn.createStatement();
 			stmt.executeUpdate(query);
@@ -365,7 +374,8 @@ public class CSCI3170_Gp15 {
 				stmt.executeUpdate("CREATE OR REPLACE VIEW expanded_qualified_SC AS SELECT * FROM temp2 WHERE SNum<=Num;");
 				stmt.executeUpdate("CREATE OR REPLACE VIEW rented_SC AS SELECT Agency, MID, SNum, Charge FROM rental_record NATURAL JOIN spacecraft_model WHERE ReturnDate IS NULL AND Type='A';");
 				stmt.executeUpdate("CREATE OR REPLACE VIEW expanded_rented_SC AS SELECT * FROM expanded_qualified_SC NATURAL JOIN rented_SC;");
-				queryResult = stmt.executeQuery("SELECT Agency, MID, Num, Energy, Duration, SNum, Charge*"+NEADuration+" AS Cost, Capacity FROM expanded_qualified_SC WHERE NOT EXISTS (SELECT Agency, MID, SNum FROM expanded_rented_SC WHERE Agency=expanded_qualified_SC.Agency AND MID=expanded_qualified_SC.MID AND  SNum=expanded_qualified_SC.SNum) ORDER BY Agency, MID, SNum;");
+				queryResult = stmt.executeQuery("SELECT Agency, MID, Num, Energy, Duration, SNum, Charge*"+ NEADuration + " AS Cost, Capacity FROM expanded_qualified_SC WHERE" + 
+								" NOT EXISTS (SELECT Agency, MID, SNum FROM expanded_rented_SC WHERE Agency=expanded_qualified_SC.Agency "+ "AND MID=expanded_qualified_SC.MID AND" + " SNum=expanded_qualified_SC.SNum) ORDER BY Agency, MID, SNum;");
 				while(queryResult.next()){
 					int capacity = queryResult.getInt("Capacity");
 					double totalValue = resourceValue*100*100*100*capacity;
