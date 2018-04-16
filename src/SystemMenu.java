@@ -103,7 +103,7 @@ public class SystemMenu {
 				SystemMenu.companyCertainMissDesign();
 				break;
 			case 4:
-				SystemMenu.companyMostBenMissDeisgn();
+				SystemMenu.companyMostBenMissDesign();
 				break;
 			default:
 				System.out.println("[Error]: Invalid choice.");		
@@ -159,7 +159,7 @@ public class SystemMenu {
 		CSCI3170_Gp15.certMissionDesign(NEAID);
 	}
 	
-	public static void companyMostBenMissDeisgn(){
+	public static void companyMostBenMissDesign(){
 		int budget = -1;
 		String resourceType = "invalidType"; 
 		System.out.print("Typing in your budget [$]: ");
