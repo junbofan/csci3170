@@ -362,14 +362,15 @@ public class CSCI3170_Gp15 {
 						resourceValue = queryResult.getDouble("Value")*queryResult.getDouble("Density");
 					}
 				}
-				stmt.executeUpdate("CREATE OR REPLACE VIEW qualified_SC AS SELECT Agency, MID, Num, Energy, Duration, Charge, Capacity FROM a_model WHERE Energy>="+NEAEnergy+" AND Duration>="+NEADuration+";");
+				stmt.executeUpdate("CREATE OR REPLACE VIEW qualified_SC AS SELECT Agency, MID, Num, Energy, " + " Duration, Charge, Capacity FROM a_model WHERE Energy>=" + NEAEnergy + " AND Duration>=" + NEADuration + ";");
 				queryResult = stmt.executeQuery("SELECT MAX(Num) AS maxSCNum FROM qualified_SC;");
 				while(queryResult.next())
 					maxSCNum = queryResult.getInt("maxSCNum");
 				stmt.executeUpdate("DROP TABLE IF EXISTS temp1;");
 				stmt.executeUpdate("CREATE TABLE temp1(SNum INT);");
-				for(int i=1; i<=maxSCNum; i++)
-					stmt.executeUpdate("INSERT INTO temp1 VALUES ("+i+");");
+				for(int i=1; i<=maxSCNum; i++) {
+					stmt.executeUpdate("INSERT INTO temp1 VALUES (" + i + ");");
+				}
 				stmt.executeUpdate("CREATE OR REPLACE VIEW temp2 AS SELECT * FROM qualified_SC INNER JOIN temp1;");
 				stmt.executeUpdate("CREATE OR REPLACE VIEW expanded_qualified_SC AS SELECT * FROM temp2 WHERE SNum<=Num;");
 				stmt.executeUpdate("CREATE OR REPLACE VIEW rented_SC AS SELECT Agency, MID, SNum, Charge FROM rental_record NATURAL JOIN spacecraft_model WHERE ReturnDate IS NULL AND Type='A';");
